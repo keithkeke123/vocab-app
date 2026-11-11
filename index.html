@@ -504,6 +504,34 @@ kbd{background:#f1f4fa;border:1px solid var(--line);border-bottom-width:2px;bord
   .scope-foot span:last-child{display:none}
 }
 
+/* ===== 答题页（正式测验 + 词汇练习）紧凑一屏布局 ===== */
+#view-quiz .quiz-wrap,#view-practice .quiz-wrap{max-width:780px}
+#view-quiz .quiz-top,#view-practice .quiz-top{margin:0 1px 6px;flex-wrap:nowrap}
+#view-quiz .qcount,#view-practice .qcount{font-size:12px}
+#view-quiz .qcount b,#view-practice .qcount b{font-size:14px}
+#view-quiz .live,#view-practice .live{gap:6px}
+#view-quiz .pill,#view-practice .pill{font-size:10px;padding:2px 8px}
+#view-quiz .progress,#view-practice .progress{margin-bottom:8px}
+#view-quiz .qcard,#view-practice .qcard{padding:12px 16px 10px;min-height:0;border-radius:16px}
+#view-quiz .qtag .kindtag,#view-practice .qtag .kindtag{font-size:9.5px;padding:2px 8px}
+#view-quiz .qprompt,#view-quiz .q-prompt,#view-practice .qprompt{font-size:23px;margin:6px 0 2px}
+#view-quiz .qprompt.cn,#view-quiz .q-prompt.cn,#view-practice .qprompt.cn{font-size:18px}
+#view-quiz .qsub,#view-quiz .q-sub,#view-practice .qsub{font-size:11px;margin-bottom:10px}
+#view-quiz .options,#view-practice .options{gap:5px;margin-top:10px}
+#view-quiz .opt,#view-practice .opt{padding:6px 10px;min-height:34px;font-size:13px;border-radius:10px}
+#view-quiz .opt .key,#view-practice .opt .key{width:21px;height:21px;font-size:10px}
+#view-quiz .feedback,#view-practice .feedback{margin-top:8px;padding:7px 10px;font-size:12px}
+#view-quiz .feedback .ans,#view-practice .feedback .ans{font-size:13px}
+#view-quiz .qcard-foot,#view-practice .qcard-foot{padding-top:6px;font-size:9px}
+#view-quiz .qactions,#view-practice .qactions{margin-top:8px}
+#view-quiz .qhint,#view-practice .qhint{margin-top:6px;font-size:10px}
+#view-quiz .btn.sm,#view-practice .btn.sm{padding:6px 11px;font-size:12px;border-radius:9px}
+#view-quiz .live .btn.sm,#view-practice .live .btn.sm{margin-left:2px}
+#view-quiz .spellbox{margin-top:10px}
+#view-quiz .blank{font-size:24px;min-height:50px;padding:10px 13px}
+#view-quiz .spell-in{padding:9px 11px;font-size:14px}
+#view-quiz .spell-tip{font-size:10px;margin-top:6px}
+
 </style>
 </head>
 <body>
@@ -518,6 +546,7 @@ kbd{background:#f1f4fa;border:1px solid var(--line);border-bottom-width:2px;bord
       <button id="tabReview" data-view="review">词汇复习</button>
       <button id="tabSearch" data-view="search">单词检索</button>
       <button id="tabMistakes" data-view="mistakes">错题本 <span class="badge" id="mistakeBadge">0</span></button>
+      <button id="tabPractice" data-view="practice">词汇练习</button>
     </nav>
     <button class="icon-btn" id="soundBtn" title="提示音">🔊</button>
   </div>
@@ -687,6 +716,31 @@ kbd{background:#f1f4fa;border:1px solid var(--line);border-bottom-width:2px;bord
       </div>
       <div class="result-actions"><button class="btn primary" id="againBtn">再测一组</button><button class="btn soft" id="retryWrongBtn">练本轮错题</button><button class="btn ghost" id="goMistakesBtn">查看错题本</button><button class="btn ghost" id="backSetupBtn">返回设置</button></div>
       <div class="card wrong-panel" id="roundWrongPanel"><div class="card-head"><div class="card-title"><span class="step">✕</span>本轮错题</div><span class="hint" id="roundWrongHint"></span></div><div id="roundWrongList"></div></div>
+    </div>
+  </section>
+
+  <section id="view-practice" class="view hidden">
+    <div class="quiz-wrap">
+      <div class="quiz-top">
+        <div class="qcount">累计 <b id="pCount">0</b> 题</div>
+        <div class="live">
+          <span class="pill ok" id="pPillOk">正确 0</span>
+          <span class="pill bad" id="pPillBad">错误 0</span>
+          <span class="pill scope" id="pScope">按所选范围</span>
+        </div>
+        <button class="btn ghost sm" id="pQuit">结束并返回首页</button>
+      </div>
+      <div class="progress"><i id="pProgress"></i></div>
+      <div class="qcard">
+        <div class="qtag"><span class="kindtag" id="pTagText">看英文 · 选中文</span><span class="pill" id="pKind">单词</span><span class="exttag hidden" id="pExt">拓展</span></div>
+        <div class="qprompt" id="pPrompt"></div>
+        <div class="qsub" id="pSub"></div>
+        <div class="options c2" id="pOptions"></div>
+        <div class="feedback hidden" id="pFeedback"></div>
+        <div class="qcard-foot"><span>四选一 · 答错自动进入错题本 · 范围按首页所选学习范围</span><span id="pFootScope"></span></div>
+      </div>
+      <div class="qactions"><button class="btn primary hidden" id="pNext">下一题 →</button></div>
+      <div class="qhint">快捷键：<kbd>1</kbd>–<kbd>4</kbd> 选择答案 · <kbd>Enter</kbd> 下一题</div>
     </div>
   </section>
 </main>
@@ -923,7 +977,7 @@ function updateSummary(){
   $('exportSetupBtn').disabled=!nc;
   $('typeHint').textContent=state.qtype==='phrase'?'（仅短语）':(state.qtype==='mixed'?'（单词 + 短语）':'（含核心词与拓展词）');
 }
-function renderScope(){
+function scopeHTML(){
   var totalSel=selectedUnitCount(), totalWords=selectedGroups().length;
   var highTotal=0, juniorTotal=0;
   BOOKS.forEach(function(b){ if(b.stage==='高中') highTotal+=b.counts.n; else juniorTotal+=b.counts.n; });
@@ -949,7 +1003,10 @@ function renderScope(){
     +'<span class="book-row-count">'+juniorTotal+'</span><div class="unit-picks"><button class="u-chip wide'+(con?' on':'')+'" data-unit="1" data-bid="cz" title="初中词汇整体选择 · 词汇 '+juniorTotal+' · 构词拓展 '+cz.counts.x+' · 短语 '+cz.counts.p+'">全部</button></div></div>';
   html+='</div>';
   html+='<div class="scope-foot"><span>已选 <b>'+totalSel+'</b> 个范围 · <b>'+totalWords+'</b> 个核心词</span><span>单元悬停可查看：词汇数 · 构词拓展数 · 短语数</span></div>';
-  $('scopeList').innerHTML=html;
+  return html;
+}
+function renderScope(){
+  $('scopeList').innerHTML=scopeHTML();
 }
 
 /* ---------- search index ---------- */
@@ -1612,7 +1669,7 @@ function speak(text){
 function syncSound(){ var b=$('soundBtn'); b.textContent=state.sound?'🔊':'🔇'; b.classList.toggle('off',!state.sound); b.title=state.sound?'提示音：开 · 答对/答错不同音效':'提示音：关'; }
 
 /* ---------- navigation / events ---------- */
-var VIEWS=['setup','review','search','mistakes','quiz','result'];
+var VIEWS=['setup','review','search','mistakes','practice','quiz','result'];
 function showView(name){
   document.body.classList.toggle('setup-lock', name==='setup');
   VIEWS.forEach(function(n){ var el=$('view-'+n); if(el)el.classList.toggle('hidden',n!==name); });
@@ -1620,6 +1677,7 @@ function showView(name){
   $('tabReview').classList.toggle('on',name==='review');
   $('tabSearch').classList.toggle('on',name==='search');
   $('tabMistakes').classList.toggle('on',name==='mistakes');
+  $('tabPractice').classList.toggle('on',name==='practice');
   if(name==='review') renderReview();
   if(name==='search') renderSearch();
   if(name==='mistakes') renderMistakes();
@@ -1627,13 +1685,14 @@ function showView(name){
 }
 function backToSetup(){ if(quiz){ if(quiz.timer)clearTimeout(quiz.timer); quiz.finished=true; } updateSummary(); showView('setup'); }
 
+function onScopeClick(e){
+  var u=e.target.closest('[data-unit]'), ba=e.target.closest('[data-bookall]'), st=e.target.closest('[data-stage]');
+  if(st){ if(st.getAttribute('data-stage')==='high') selectHigh(); else selectJunior(); return; }
+  if(ba){ toggleBook(ba.getAttribute('data-bookall')); return; }
+  if(u){ toggleUnit(u.getAttribute('data-bid'),parseInt(u.getAttribute('data-unit'),10)); return; }
+}
 function bindSetup(){
-  $('scopeList').addEventListener('click',function(e){
-    var u=e.target.closest('[data-unit]'), ba=e.target.closest('[data-bookall]'), st=e.target.closest('[data-stage]');
-    if(st){ if(st.getAttribute('data-stage')==='high') selectHigh(); else selectJunior(); return; }
-    if(ba){ toggleBook(ba.getAttribute('data-bookall')); return; }
-    if(u){ toggleUnit(u.getAttribute('data-bid'),parseInt(u.getAttribute('data-unit'),10)); return; }
-  });
+  $('scopeList').addEventListener('click',onScopeClick);
   $('selectAllBtn').addEventListener('click',selectAll);
   $('selectNoneBtn').addEventListener('click',selectNone);
   $('typeMode').addEventListener('click',function(e){
@@ -1710,6 +1769,127 @@ function bindQuiz(){
     }
   });
 }
+/* ---------- 词汇练习（全部收录词 · 四选一 · 仅两种题型） ---------- */
+var pQuiz=null;
+function practicePool(){
+  var groups=selectedGroups(), out=[];
+  groups.forEach(function(g){
+    out.push(coreItem(g));
+    g.x.forEach(function(x){out.push(expItem(g,x));});
+    g.p.forEach(function(p){out.push(phrItem(g,p));});
+  });
+  return uniqBy(out.filter(function(it){return it.en&&it.cn;}),function(it){return it.en.toLowerCase()+'|'+it.cn;});
+}
+function buildPracticeQuestions(pool){
+  return shuffle(pool.slice()).map(function(it){
+    var mode=/^[A-Za-z][A-Za-z' -]*$/.test(it.en)?(Math.random()<.5?'cn2en':'en2cn'):'cn2en';
+    var q={item:it,mode:mode};
+    q.options=buildOptions(it,pool,mode);
+    return q;
+  });
+}
+function startPractice(){
+  initAudio();
+  var pool=practicePool();
+  if(pool.length<4){toast('当前所选范围词条太少，无法组题');return;}
+  pQuiz={questions:buildPracticeQuestions(pool),idx:0,answers:[],finished:false,timer:null};
+  showView('practice');
+  renderPracticeQuestion();
+}
+function renderPracticeQuestion(){
+  if(!pQuiz)return;
+  var q=pQuiz.questions[pQuiz.idx],it=q.item;
+  var ok=pQuiz.answers.filter(function(a){return a.correct;}).length;
+  $('pCount').textContent=pQuiz.answers.length;
+  $('pPillOk').textContent='正确 '+ok;
+  $('pPillBad').textContent='错误 '+(pQuiz.answers.length-ok);
+  $('pFeedback').classList.add('hidden');
+  $('pNext').classList.add('hidden');
+  $('pOptions').innerHTML='';
+  $('pKind').textContent=it.type==='phrase'?'短语':'单词';
+  var ext=it.kind!=='core';
+  $('pExt').className='exttag '+(it.kind==='phrase'?'':it.kind);
+  $('pExt').textContent=it.kind==='phrase'?'短语拓展':(XNAME(it.kind)+'拓展');
+  $('pExt').classList.toggle('hidden',!ext);
+  $('pExt').title=ext?('来自 '+it.base):'';
+  if(q.mode==='cn2en'){
+    $('pTagText').textContent='看中文 · 选英文';
+    $('pPrompt').className='qprompt cn'; $('pPrompt').textContent=it.cn;
+    $('pSub').innerHTML='从下面四个选项中选出对应的英文'+(it.type==='phrase'?'短语':'单词')+(ext?' · <span class="base">来自 '+esc(it.base)+'</span>':'');
+  }else{
+    $('pTagText').textContent='看英文 · 选中文';
+    $('pPrompt').className='qprompt'; $('pPrompt').innerHTML=esc(it.en)+spk(it.en,'lg');
+    $('pSub').innerHTML='选择正确的中文意思'+(ext?' · <span class="base">来自 '+esc(it.base)+'</span>':'');
+  }
+  renderPracticeOptions(q);
+  var pct=pQuiz.questions.length?((pQuiz.idx+1)/pQuiz.questions.length*100):0;
+  $('pProgress').style.width=pct+'%';
+}
+function renderPracticeOptions(q){
+  var area=$('pOptions'); area.classList.remove('hidden');
+  area.className='options '+(q.mode==='en2cn'?'c1':'c2');
+  var letters=['A','B','C','D'];
+  q.options.forEach(function(o,i){
+    var b=document.createElement('button'); b.className='opt';
+    b.innerHTML='<span class="key">'+letters[i]+'</span><span class="txt">'+esc(o.text)+'</span>';
+    if(q.mode==='cn2en') b.innerHTML+='<span style="margin-left:auto">'+spk(o.text,'xs')+'</span>';
+    b.dataset.correct=o.correct?'1':'0';
+    b.onclick=function(){practiceAnswer(b,q);};
+    area.appendChild(b);
+  });
+}
+function practiceAnswer(btn,q){
+  if(!pQuiz||pQuiz.finished||btn.classList.contains('locked'))return;
+  btn.classList.add('picked');
+  var correct=btn.dataset.correct==='1';
+  pQuiz.answers.push({item:q.item,correct:correct,mode:q.mode});
+  var ok=pQuiz.answers.filter(function(a){return a.correct;}).length;
+  $('pPillOk').textContent='正确 '+ok; $('pPillBad').textContent='错误 '+(pQuiz.answers.length-ok);
+  if(correct){soundOk();markCorrect(q.item);}else{soundNo();markWrong(q.item);}
+  [].forEach.call($('pOptions').children,function(b){
+    b.classList.add('locked');
+    var is=b.dataset.correct==='1';
+    if(is)b.classList.add('correct'); else if(b.classList.contains('picked'))b.classList.add('wrong'); else b.classList.add('dim');
+  });
+  var fb=$('pFeedback'),it=q.item;
+  if(correct){
+    fb.className='feedback ok'; fb.innerHTML='<span>答对了 ✓</span><span class="ans">'+esc(it.en)+'</span>'+spk(it.en,'sm')+'<span class="why">'+esc(it.cn)+'</span>';
+  }else{
+    fb.className='feedback no'; fb.innerHTML='<span>答错了</span><span class="ans">'+esc(it.cn)+' → '+esc(it.en)+'</span>'+spk(it.en,'sm')+'<span class="why">已记入错题本 · '+esc(srcLabel(it))+'</span>';
+  }
+  fb.classList.remove('hidden'); $('pNext').classList.remove('hidden');
+  $('pProgress').style.width='100%';
+  if(correct){ if(pQuiz.timer)clearTimeout(pQuiz.timer); pQuiz.timer=setTimeout(function(){pQuiz.timer=null;if(pQuiz&&!pQuiz.finished)practiceNext();},900); }
+}
+function practiceNext(){
+  if(!pQuiz||pQuiz.finished)return;
+  if(pQuiz.timer){clearTimeout(pQuiz.timer);pQuiz.timer=null;}
+  pQuiz.idx++;
+  if(pQuiz.idx>=pQuiz.questions.length){
+    var pool=practicePool();
+    pQuiz.questions=buildPracticeQuestions(pool);
+    pQuiz.idx=0;
+  }
+  renderPracticeQuestion();
+}
+function practiceQuit(){
+  if(pQuiz){ if(pQuiz.timer)clearTimeout(pQuiz.timer); pQuiz.finished=true; pQuiz=null; }
+  showView('setup');
+  toast('练习已结束，回到首页');
+}
+function bindPractice(){
+  $('pNext').addEventListener('click',practiceNext);
+  $('pQuit').addEventListener('click',practiceQuit);
+  document.addEventListener('keydown',function(e){
+    if(e.defaultPrevented||e.repeat||!pQuiz||pQuiz.finished)return;
+    if($('view-practice').classList.contains('hidden'))return;
+    if(e.key==='Enter'&&!$('pNext').classList.contains('hidden')){e.preventDefault();practiceNext();return;}
+    if(!$('pOptions').classList.contains('hidden')){
+      var n=parseInt(e.key,10);
+      if(n>=1&&n<=4){var b=$('pOptions').children[n-1];if(b&&!b.classList.contains('locked'))practiceAnswer(b,pQuiz.questions[pQuiz.idx]);}
+    }
+  });
+}
 function bindResult(){
   $('againBtn').addEventListener('click',startFromSetup);
   $('retryWrongBtn').addEventListener('click',function(){ if(!lastRound||!lastRound.wrong.length)return; var p=lastRound.wrong.slice(); startQuiz(p,Math.min(p.length,30)); });
@@ -1721,6 +1901,7 @@ function bindTabs(){
   $('tabReview').addEventListener('click',function(){ if(!selectedGroups().length){toast('请先在「开始测试」里选择范围');showView('setup');return;} showView('review'); });
   $('tabSearch').addEventListener('click',function(){ showView('search'); setTimeout(function(){$('dictInput').focus();},80); });
   $('tabMistakes').addEventListener('click',function(){ showView('mistakes'); });
+  $('tabPractice').addEventListener('click',startPractice);
   $('soundBtn').addEventListener('click',function(){ state.sound=!state.sound; saveState(); syncSound(); if(state.sound)soundOk(); });
 }
 function init(){
@@ -1740,10 +1921,10 @@ function init(){
   [].forEach.call($('typeMode').children,function(c){c.classList.toggle('on',c.dataset.type===state.qtype);});
   [].forEach.call($('countRow').querySelectorAll('button'),function(c){c.classList.toggle('on',parseInt(c.dataset.count,10)===state.count);});
   renderScope(); updateSummary(); updateBadge();
-  bindSetup(); bindReview(); bindSearch(); bindMistakes(); bindQuiz(); bindResult(); bindTabs();
+  bindSetup(); bindReview(); bindSearch(); bindMistakes(); bindQuiz(); bindPractice(); bindResult(); bindTabs();
   var qs=new URLSearchParams(location.search||'');
   var hash=qs.get('view')||(location.hash||'').replace('#','');
-  if(['review','search','mistakes','setup'].indexOf(hash)>=0) showView(hash);
+  if(['review','search','mistakes','practice','setup'].indexOf(hash)>=0) showView(hash);
   else showView('setup');
   if(qs.get('q')){ $('dictInput').value=qs.get('q'); showView('search'); }
   if(qs.get('start')==='1'){ showView('setup'); startFromSetup(); }
